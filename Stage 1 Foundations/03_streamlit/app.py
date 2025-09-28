@@ -246,3 +246,44 @@ else:
     show['cb_amount_sum'] = show['cb_amount_sum'].fillna(0).map(lambda x: f"${x:,.2f}")
     show['cb_amount_avg'] = show['cb_amount_avg'].fillna(0).map(lambda x: f"${x:,.2f}")
     st.dataframe(show, use_container_width=True)
+
+## Top Entities (users)
+df_cb = df_filt[df_filt['is_chargeback'] == 1].copy()
+
+if df_cb.empty:
+    st.info("No chargebacks in current filter.")
+else:
+    top_users = (df_cb.groupby('user_id')
+                 .agg(cb_count=('transaction_id','count'),
+                      cb_amount_sum=('amount_cb','sum'),
+                      cb_amount_avg=('amount_cb','mean'),
+                      last_tx_date=('date','max'))
+                 .reset_index())
+
+    # Top by $ amount
+    top_by_amount = top_users.sort_values('cb_amount_sum', ascending=False).head(10)
+    # Top by count
+    top_by_count  = top_users.sort_values('cb_count', ascending=False).head(10)
+
+    # Pretty formatting for display
+    def fmt_tbl(df):
+        d = df.copy()
+        d['cb_amount_sum'] = d['cb_amount_sum'].fillna(0).map(lambda x: f"${x:,.2f}")
+        d['cb_amount_avg'] = d['cb_amount_avg'].fillna(0).map(lambda x: f"${x:,.2f}")
+        d['last_tx_date']  = d['last_tx_date'].dt.date
+        return d
+
+    st.subheader("Top Users by Chargeback Amount")
+    st.dataframe(fmt_tbl(top_by_amount), use_container_width=True)
+
+    st.subheader("Top Users by Chargeback Count")
+    st.dataframe(fmt_tbl(top_by_count), use_container_width=True)
+
+    # Downloads (raw, not formatted)
+    st.download_button("Download Top Users by Amount (CSV)",
+                       data=top_by_amount.to_csv(index=False).encode('utf-8'),
+                       file_name="top_users_by_amount.csv", mime="text/csv")
+
+    st.download_button("Download Top Users by Count (CSV)",
+                       data=top_by_count.to_csv(index=False).encode('utf-8'),
+                       file_name="top_users_by_count.csv", mime="text/csv")
