@@ -3,6 +3,11 @@ import pandas as pd
 import os
 from pathlib import Path
 
+# Streamlit Page Configuration
+st.set_page_config(page_title="Chargeback Analytics", layout="wide")
+st.title("Chargeback Analytics")
+st.caption("Streamlit dashboard for chargeback trends & KPIs")
+
 # Functions
 @st.cache_data
 def load_data(transactions_path, chargebacks_path):
@@ -34,19 +39,6 @@ def prepare_views(tx, cb):
     return df, daily, weekly
 
 
-# Streamlit Page Configuration
-st.set_page_config(page_title="Chargeback Analytics", layout="wide")
-st.title("Chargeback Analytics")
-st.caption("Streamlit dashboard for chargeback trends & KPIs")
-
-# Sidebar Configuration
-st.sidebar.header('Filters')
-date_range = st.sidebar.date_input("Date Range (set after data loads)", disabled=True)
-payment_method = st.sidebar.multiselect("Payment Methods", [])
-amount_sel = st.sidebar.slider("Amount Range", 0.0, 1000.0, (0.0, 1000.0))
-granularity = st.sidebar.radio("Granularity", ["Day", "Week"])
-
-st.info("✅ App scaffold loaded. Proceed to Step 1: Load data.")
 
 # Load Data with Fallback Upload
 APP_DIR = Path(__file__).resolve().parent.parent
@@ -64,12 +56,13 @@ if not tx_path.exists() or not cb_path.exists():
         st.stop()
 else:
     tx, cb = load_data(tx_path, cb_path)
-## Prepare Views
-df, daily, weekly = prepare_views(tx,cb)
 
 ## Types 
 tx['timestamp'] = pd.to_datetime(tx['timestamp'], utc=True).dt.tz_convert(None)
 tx['is_fraud'] = pd.to_numeric(tx['is_fraud'], errors='coerce').fillna(0).astype(int)
+
+## Prepare Views
+df, daily, weekly = prepare_views(tx,cb)
 
 ## Validatation
 required_tx = {'transaction_id','user_id','timestamp','amount','payment_method','is_fraud'}
@@ -78,14 +71,45 @@ required_cb = {'transaction_id','user_id','amount','days_after_purchase'}
 missing_tx = required_tx - set(tx.columns)
 missing_cb = required_cb - set(cb.columns)
 
-if missing_tx:
-    st.error(f"Transactions missing columns: {missing_tx}")
-if missing_cb:
-    st.error(f"Chargebacks missing columns: {missing_cb}")
-if missing_tx or missing_cb:
+if missing_tx: st.error(f"Transactions missing columns: {missing_tx}")
+if missing_cb: st.error(f"Chargebacks missing columns: {missing_cb}")
+if missing_tx or missing_cb: st.stop()
+
+# Sidebar Configuration
+date_min = df['date'].min().date()  
+date_max = df['date'].max().date()
+methods  = sorted(df['payment_method'].dropna().unique().tolist())
+
+amt_q01  = float(tx['amount'].quantile(0.01))
+amt_q99  = float(tx['amount'].quantile(0.99))
+amt_min, amt_max = float(tx['amount'].min()), float(tx['amount'].max())
+
+with st.sidebar:
+    st.header("Filters")
+    date_range = st.date_input("Date Range", (date_min, date_max)) 
+    method_sel = st.multiselect("Payment Methods", methods, default=methods)
+    amount_sel = st.slider("Amount Range", min_value=amt_q01, max_value=amt_q99, value=(amt_q01, amt_q99))
+    granularity = st.radio("Granularity", ["Day", "Week"], index=1)
+
+# Apply Filters
+start, end = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
+mask = (df['date'] >= start) & (df['date'] <= end)
+
+if method_sel:
+    mask &= df['payment_method'].isin(method_sel)
+
+mask &= (df['amount'] >= amount_sel[0]) & (df['amount'] <= amount_sel[1])
+
+df_filt = df.loc[mask].copy()
+if df_filt.empty:
+    st.warning("No data for the current filter selection.")
     st.stop()
 
+
 # Dashboard Content
+st.info("✅ App scaffold loaded. Proceed to Step 1: Load data.")
+st.success(f"Filtered rows: {len(df_filt):,} / {len(df):,}")
+
 with st.expander("Peek at data"):
     st.write("Transactions sample:", tx.head())
     st.write("Chargebacks sample:", cb.head())
