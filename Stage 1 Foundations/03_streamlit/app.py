@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import os
 from pathlib import Path
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 # Streamlit Page Configuration
 st.set_page_config(page_title="Chargeback Analytics", layout="wide")
@@ -119,25 +121,59 @@ if df_filt.empty:
     st.warning("No data for the current filter selection.")
     st.stop()
 
-
 # Dashboard Content
+## Expanders (Intro and Data Peak)
 with st.expander("About"):
     st.markdown("""
     - Track chargeback **count**, **rate**, and **$** over time  
     - Slice by **payment method** and **amount**  
     - See **time-to-chargeback** distribution  
     """)
-
 with st.expander("Peek at data"):
     st.write("Transactions sample:", tx.head())
     st.write("Chargebacks sample:", cb.head())
     st.write("Joined Data:", df.head())
 
+## Filtered Row Count
 st.success(f"Filtered rows: {len(df_filt):,} / {len(df):,}")
 
+## KPI Tiles
 c1,c2,c3,c4 = st.columns(4)
 cb_count, cb_rate, cb_sum, cb_avg = compute_kpi(df_filt)
 c1.metric("Chargebacks", f"{cb_count:,}")
 c2.metric("Chargeback Rate", fmt_pct(cb_rate))
 c3.metric("Chargeback $ (Total)", fmt_cur(cb_sum))
 c4.metric("Chargeback $ (Avg)", fmt_cur(cb_avg))
+
+## Trend Chart
+### Trend Chart Data Prepare
+if granularity == "Day":
+    grp_col = 'date'
+else:
+    grp_col = 'week_start'
+
+ts = (df_filt
+      .groupby(grp_col)
+      .agg(tx_total=('transaction_id','count'),
+           cb_count=('is_chargeback','sum'))
+      .reset_index()
+     )
+ts['cb_rate'] = ts['cb_count'] / ts['tx_total'].replace(0, pd.NA)
+
+fig = go.Figure()
+
+fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+fig.add_bar(x=ts[grp_col], y=ts['cb_count'], name='Chargebacks')
+fig.add_trace(go.Scatter(x=ts[grp_col], y=ts['cb_rate'], mode='lines+markers', name='CB Rate'),
+              secondary_y=True)
+
+fig.update_layout(title=f"Chargebacks & Rate by {granularity}",
+                  bargap=0.2, hovermode="x unified")
+fig.update_yaxes(title_text="Chargebacks", secondary_y=False)
+fig.update_yaxes(title_text="CB Rate", tickformat=".1%", secondary_y=True)
+
+if ts.empty:
+    st.info("No data for selected filters.")
+else:
+    st.plotly_chart(fig, use_container_width=True)
