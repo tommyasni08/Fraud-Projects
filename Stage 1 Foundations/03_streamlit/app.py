@@ -208,3 +208,41 @@ st.dataframe(show, use_container_width=True)
 
 csv = pm_sorted.to_csv(index=False).encode('utf-8')
 st.download_button("Download payment-method breakdown (CSV)", data=csv, file_name="pm_breakdown.csv", mime="text/csv")
+
+## Time-to-Chargeback (delay) distribution
+### 1) Filter CB rows
+df_cb = df_filt[df_filt['is_chargeback'] == 1].copy()
+df_cb['days_after_purchase'] = pd.to_numeric(df_cb['days_after_purchase'], errors='coerce')
+df_cb = df_cb[df_cb['days_after_purchase'] >= 0]
+
+if df_cb.empty:
+    st.info("No chargebacks in current filter.")
+else:
+    ### 2) Buckets
+    bins = [0, 10, 30, 60, float('inf')]
+    labels = ['0-10', '11-30', '31-60', '>60']
+    df_cb['cb_delay_bucket'] = pd.cut(df_cb['days_after_purchase'], bins=bins, labels=labels, right=True, include_lowest=True)
+
+    ### 3) Aggregate
+    delay = (df_cb.groupby('cb_delay_bucket')
+             .agg(cb_count=('transaction_id','count'),
+                  cb_amount_sum=('amount_cb','sum'),
+                  cb_amount_avg=('amount_cb','mean'))
+             .reset_index())
+
+
+    ### 4) Plot counts
+    fig_delay = make_subplots(specs=[[{"secondary_y": True}]])
+    fig_delay.add_bar(x=delay['cb_delay_bucket'], y=delay['cb_count'], name='Chargebacks')
+    fig_delay.add_scatter(x=delay['cb_delay_bucket'], y=delay['cb_amount_avg'], name='Avg CB $', mode='lines+markers', secondary_y=True)
+    fig_delay.update_yaxes(title_text="Count", secondary_y=False)
+    fig_delay.update_yaxes(title_text="Avg CB $", secondary_y=True)
+    
+    fig_delay.update_layout(title="Time to Chargeback (days)", xaxis_title="Delay bucket", yaxis_title="Count")
+
+    st.plotly_chart(fig_delay, use_container_width=True)
+
+    show = delay.copy()
+    show['cb_amount_sum'] = show['cb_amount_sum'].fillna(0).map(lambda x: f"${x:,.2f}")
+    show['cb_amount_avg'] = show['cb_amount_avg'].fillna(0).map(lambda x: f"${x:,.2f}")
+    st.dataframe(show, use_container_width=True)
