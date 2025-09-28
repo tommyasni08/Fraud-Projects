@@ -146,7 +146,6 @@ c3.metric("Chargeback $ (Total)", fmt_cur(cb_sum))
 c4.metric("Chargeback $ (Avg)", fmt_cur(cb_avg))
 
 ## Trend Chart
-### Trend Chart Data Prepare
 if granularity == "Day":
     grp_col = 'date'
 else:
@@ -177,3 +176,35 @@ if ts.empty:
     st.info("No data for selected filters.")
 else:
     st.plotly_chart(fig, use_container_width=True)
+
+## Payment Method Breakdown
+pm = (df_filt
+      .groupby('payment_method')
+      .agg(tx_total=('transaction_id','count'),
+           cb_count=('is_chargeback','sum'),
+           cb_amount_sum=('amount_cb','sum'),
+           cb_amount_avg=('amount_cb','mean'))
+      .reset_index()
+     )
+pm['cb_rate'] = pm['cb_count'] / pm['tx_total'].replace(0, pd.NA)
+
+pm_sorted = pm.sort_values('cb_rate', ascending=False)
+
+fig_pm = go.Figure(go.Bar(x=pm_sorted['payment_method'],
+                          y=pm_sorted['cb_rate'],
+                          text=pm_sorted['cb_rate'].map(lambda v: f"{v:.1%}"),
+                          textposition='outside',
+                          name='CB Rate'))
+fig_pm.update_layout(title="Chargeback Rate by Payment Method",
+                     yaxis_tickformat=".0%", xaxis_title="Payment Method",
+                     yaxis_title="CB Rate")
+st.plotly_chart(fig_pm, use_container_width=True)
+
+show = pm_sorted.copy()
+show['cb_rate'] = show['cb_rate'].map(lambda v: f"{v:.2%}" if pd.notna(v) else "—")
+show['cb_amount_sum'] = show['cb_amount_sum'].map(lambda x: f"${x:,.2f}")
+show['cb_amount_avg'] = show['cb_amount_avg'].map(lambda x: f"${x:,.2f}")
+st.dataframe(show, use_container_width=True)
+
+csv = pm_sorted.to_csv(index=False).encode('utf-8')
+st.download_button("Download payment-method breakdown (CSV)", data=csv, file_name="pm_breakdown.csv", mime="text/csv")
