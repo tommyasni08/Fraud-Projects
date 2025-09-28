@@ -38,7 +38,18 @@ def prepare_views(tx, cb):
     weekly['cb_rate'] = weekly['cb_count'] / weekly['tx_total'].replace(0, pd.NA)
     return df, daily, weekly
 
+def fmt_pct(x): return f"{x:.2%}"
 
+def fmt_cur(x): return f"${x:,.2f}"
+
+@st.cache_data
+def compute_kpi(df_filt):
+    total_tx  = len(df_filt)
+    cb_count  = int(df_filt['is_chargeback'].sum())
+    cb_rate   = (cb_count / total_tx) if total_tx else 0.0
+    cb_sum    = float(df_filt.loc[df_filt['is_chargeback']==1, 'amount_cb'].sum())
+    cb_avg    = float(df_filt.loc[df_filt['is_chargeback']==1, 'amount_cb'].mean() or 0.0)
+    return cb_count, cb_rate, cb_sum, cb_avg
 
 # Load Data with Fallback Upload
 APP_DIR = Path(__file__).resolve().parent.parent
@@ -92,7 +103,10 @@ with st.sidebar:
     granularity = st.radio("Granularity", ["Day", "Week"], index=1)
 
 # Apply Filters
-start, end = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
+if not isinstance(date_range, (list, tuple)) or len(date_range) == 1:
+    start = end = pd.to_datetime(date_range if not isinstance(date_range,(list,tuple)) else date_range[0])
+else:
+    start, end = map(pd.to_datetime, date_range)
 mask = (df['date'] >= start) & (df['date'] <= end)
 
 if method_sel:
@@ -107,17 +121,23 @@ if df_filt.empty:
 
 
 # Dashboard Content
-st.info("✅ App scaffold loaded. Proceed to Step 1: Load data.")
-st.success(f"Filtered rows: {len(df_filt):,} / {len(df):,}")
-
-with st.expander("Peek at data"):
-    st.write("Transactions sample:", tx.head())
-    st.write("Chargebacks sample:", cb.head())
-    st.write("Joined Data:", df.head())
-
 with st.expander("About"):
     st.markdown("""
     - Track chargeback **count**, **rate**, and **$** over time  
     - Slice by **payment method** and **amount**  
     - See **time-to-chargeback** distribution  
     """)
+
+with st.expander("Peek at data"):
+    st.write("Transactions sample:", tx.head())
+    st.write("Chargebacks sample:", cb.head())
+    st.write("Joined Data:", df.head())
+
+st.success(f"Filtered rows: {len(df_filt):,} / {len(df):,}")
+
+c1,c2,c3,c4 = st.columns(4)
+cb_count, cb_rate, cb_sum, cb_avg = compute_kpi(df_filt)
+c1.metric("Chargebacks", f"{cb_count:,}")
+c2.metric("Chargeback Rate", fmt_pct(cb_rate))
+c3.metric("Chargeback $ (Total)", fmt_cur(cb_sum))
+c4.metric("Chargeback $ (Avg)", fmt_cur(cb_avg))
