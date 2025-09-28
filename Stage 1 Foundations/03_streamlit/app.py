@@ -23,6 +23,11 @@ def prepare_views(tx, cb):
     df = tx.merge(cb[['transaction_id','amount','days_after_purchase']], on='transaction_id', how='left', suffixes=('','_cb'), indicator=True)
     df['is_chargeback'] = (df['_merge'] =='both').astype(int)
     df.drop(columns=['_merge'], inplace=True)
+    ### Defensive typing
+    df['amount'] = pd.to_numeric(df['amount'], errors='coerce')
+    df['amount_cb'] = pd.to_numeric(df['amount_cb'], errors='coerce')
+    df['days_after_purchase'] = pd.to_numeric(df['days_after_purchase'], errors='coerce')
+    df = df[df['days_after_purchase'].isna() | (df['days_after_purchase'] >= 0)]
     ### Date buckets
     df['date'] = df['timestamp'].dt.floor('D')
     df['week_start']= df['timestamp'].dt.to_period('W').apply(lambda x: x.start_time)
@@ -49,8 +54,8 @@ def compute_kpi(df_filt):
     total_tx  = len(df_filt)
     cb_count  = int(df_filt['is_chargeback'].sum())
     cb_rate   = (cb_count / total_tx) if total_tx else 0.0
-    cb_sum    = float(df_filt.loc[df_filt['is_chargeback']==1, 'amount_cb'].sum())
-    cb_avg    = float(df_filt.loc[df_filt['is_chargeback']==1, 'amount_cb'].mean() or 0.0)
+    cb_sum = float(df_filt.loc[df_filt['is_chargeback']==1, 'amount_cb'].sum()) if not df_filt.empty else 0.0
+    cb_avg = float(df_filt.loc[df_filt['is_chargeback']==1, 'amount_cb'].mean()) if df_filt['is_chargeback'].any() else 0.0
     return cb_count, cb_rate, cb_sum, cb_avg
 
 # Load Data with Fallback Upload
@@ -123,19 +128,27 @@ if df_filt.empty:
 
 # Dashboard Content
 ## Expanders (Intro and Data Peak)
-with st.expander("About"):
+with st.expander("About KPIs"):
     st.markdown("""
-    - Track chargeback **count**, **rate**, and **$** over time  
-    - Slice by **payment method** and **amount**  
-    - See **time-to-chargeback** distribution  
+    - **Chargebacks**: number of transactions that later became chargebacks  
+    - **Chargeback Rate**: chargebacks / total transactions in view  
+    - **Chargeback $ (Total/Avg)**: based on `amount_cb` from chargebacks  
     """)
 with st.expander("Peek at data"):
     st.write("Transactions sample:", tx.head())
     st.write("Chargebacks sample:", cb.head())
     st.write("Joined Data:", df.head())
+with st.expander("Data sanity checks"):
+    st.write({
+        "transactions": len(tx),
+        "chargebacks": len(cb),
+        "tx_date_min": tx['timestamp'].min(),
+        "tx_date_max": tx['timestamp'].max(),
+    })
 
 ## Filtered Row Count
 st.success(f"Filtered rows: {len(df_filt):,} / {len(df):,}")
+st.caption(f"Filters → Date: {start.date()} to {end.date()} | Methods: {', '.join(method_sel) if method_sel else 'All'} | Amount: {amount_sel[0]:.2f}–{amount_sel[1]:.2f}")
 
 ## KPI Tiles
 c1,c2,c3,c4 = st.columns(4)
