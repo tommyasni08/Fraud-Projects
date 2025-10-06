@@ -1,23 +1,42 @@
-## Core Fraud Knowledge
+# 📘 Module 2 - Synthetic Identity & Onboarding Fraud
 
-1. Definition: What is synthetic identity fraud? How is it different from stolen identity fraud or new account fraud?
+## 0 TL;DR
 
-2. Motivations: Why do attackers use synthetic identities? What value do they get out of them?
+**Synthetic identity fraud (SIF)** = creating a new "person" by blending **real** identifiers (e.g., national ID fragments, DOB, phone) with **fabricated** data (name, address, documents). Unlike stolen-identity ATO, there's **no real victim** to complain, so fraud can "age" undetected and **bust out** later (loans, credit lines, promo cash-outs). Detection relies on **entity resolution, duplication signals, graph analysis, and document/biometric integtrity** at onboarding.
 
-3. Attack Vectors: How are synthetic accounts created? (e.g., combining real + fake data, document forgery, mule recruitment).
+## 1. Definition
 
-4. Industry Examples: Share at least one case study from banking/fintech and one from platforms/marketplaces.
+- **Synthetic Identity Fraud**: Creation of accounts using partial legitimate data + fabricated attributes to pass onboarding/KYC and build history for later abuse.
 
-5. Business Impact: What risks does onboarding fraud pose to businesses? (financial, regulatory, operational).
+- **Differ from**:
+  - **Stolen Identity Fraud**: Entirely impersonates a real person; victims report quickly.
+  - **New account Fraud (NAF)**: Any fraudulent new account; SIF is a subset optimized to look **legitimate** and persist.
 
-## Analyst / Data Scientist / Engineer Add-ons
+## 2. Attacker Motivations (Cross-Industry)
 
-6. Signals: What are the typical data fields/signals checked during onboarding/KYC that can indicate synthetic fraud?
+- **Credit building & burst-out (banks/fintecht)**: Open accounts, behave normally, then max out cards/loans and disappear.
+- **Cash-out infrastructure (all)**: Use synthetic accounts as "clean" intermediaries to launder proceeds.
+- **Promo/referral farming (e-commerce, delivery, social)**: Farm "new user" incentives, vouchers, shipping credits.
+- **Resillience & scale**: No real victim noise -> safer to operate long-term, easier to industrialize.
 
-7. Feature Engineering: What derived features can help identify duplicates or anomalies (e.g., address clustering, phone reuse)?
+## 3. Attack Vectors & TTPs (Tactics, Techniques, and Procedures)
 
-8. Graph Angle: How can graph analysis be applied to detect networks of fake identities?
+- **Data Assembly**: Breach dumps, data brokers, phising to gather high-value fragments (IDs, DOBs, phone).
+- **Document forgery**: Tampered IDs, template overlays, synthetic faces; low-grade print/scan artifacts.
+- **Device/SIM farms**: OTP receipt, multi-account registration, IP rotation (VPN, proxies).
+- **Mule recruitment**: Willing sellers of identity or bank accounts to anchor synthetic personas.
+- **Aging strategy**: Small, normal activity to accumulate trust; later **burst-out** or promo harvesting.
 
-9. Labeling Challenges: What makes it hard to build labeled datasets for synthetic identity fraud?
+## 4. Illustrative Case Studies
 
-10. Modeling Angle: If you were building a model, what features/approaches would you prioritize (e.g., anomaly detection on identity fields, entity resolution models)?
+- **US bank fraud rings**: Fabricated personas + shell companies to open credit lines and steal ~$1-2M per ring before takedown (typical pattern: months of aging, sudden burst-out).
+- **Marketplace/delivery promo rings (SE Asia & US)**:Thousands of "new" accounts from device farms to exploit sign-up vouchers, free shipping, and referral loops; payouts routed to common bank accounts.
+
+(Focus is on patterns you'll see repeatedly, not specific news citations.)
+
+## 5. Business Impact
+
+- **Financial**: Credit losses, promo leakage, refunds, colletions costs.
+- **Regulatory/Compliance**:KYC/AML breaches, fines, remeditation mandates (especially in banking).
+- **Operational**: Corrupted growth metrics (fake "new users"), polluted datasets, manual review burden.
+- **Trust/Reputation**: Partners/advertisers question user quality; banks face regulator scrutiny.
