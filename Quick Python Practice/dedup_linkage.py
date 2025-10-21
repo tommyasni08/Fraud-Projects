@@ -19,4 +19,4 @@ def shared_bank_pairs(rows):
             pairs.add((a, b))
     return pairs
 
-shared_bank_pairs(rows) # {("u1","u2"), ("u1","u4"), ("u2","u4")}
+print(shared_bank_pairs(rows)) # {("u1","u2"), ("u1","u4"), ("u2","u4")}
