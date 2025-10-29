@@ -11,33 +11,23 @@ The content here is not code-focused but rather **theory + case studies + data/a
 
 ---
 
-## 📚 Learning Methodology
-
-This repo is based on an **active research + mentor feedback loop**:
-
-1. I research each topic using academic papers, industry reports, and case studies.
-2. I draft structured answers to a set of guiding questions.
-3. My mentor (fraud expert) reviews, corrects, and pushes me toward **industry-grade depth**.
-4. The final output is documented here, module by module.
-
-The emphasis is on **retention, structure, and cross-industry application** rather than speed.
-
----
-
 ## 🗂️ Modules
 
-1. **Account Takeover (ATO) & Identity Attacks**
-2. **Synthetic Identity & Onboarding Fraud**
-3. **Payment Fraud (Cards, Wallets, Chargebacks)**
-4. **Promo Abuse & Incentive Gaming**
-5. **Refund & Return Abuse**
-6. **Collusion & Fraud Rings**
-7. **Review & Engagement Manipulation**
-8. **GPS & Location Fraud (Rides, Deliveries)**
-9. **Money Laundering (AML Context)**
-10. **Fraud Economics & Business Impact**
+| #   | Module                                     | Focus                                             |
+| --- | ------------------------------------------ | ------------------------------------------------- |
+| 1   | **Account Takeover (ATO)**                 | Identity-based compromise, behavioral biometrics  |
+| 2   | **Synthetic Identity Fraud (SIF)**         | Mixed-real identity creation, onboarding fraud    |
+| 3   | **Payment Fraud**                          | Card, wallet, and chargeback ecosystems           |
+| 4   | **Promotion Abuse**                        | Incentive gaming, growth manipulation             |
+| 5   | **Refund & Return Abuse**                  | Policy exploitation, instant refund loops         |
+| 6   | **Collusion & Rings**                      | Multi-account, cross-role cooperation             |
+| 7   | **AML & Mule Networks**                    | Flow of illicit funds, graph-based detection      |
+| 8   | **Review Manipulation & Engagement Fraud** | Reputation laundering, fake engagement            |
+| 9   | **Insurance Fraud**                        | Claims manipulation, provider collusion           |
+| 10  | **Loan & BNPL Fraud**                      | Credit application, bust-out & merchant collusion |
+| 11  | **Fraud Economics & Business Impact**      | Strategy, trade-offs, and ROI modeling            |
 
-Each module includes:
+Each module is designed to mirror **industry-grade fraud frameworks** used by leading companies in fintech, marketplaces, ride-hailing, e-commerce, and social platforms. It blends theory, practical data signals, and modeling considerations — all written from the lens of _a practitioner learning for mastery, not memorization._ Each module includes:
 
 - **Definitions & Key Concepts**
 - **Typical Attack Patterns**
