@@ -1,0 +1,22 @@
+{
+  "rows": 100000,
+  "cols": 109,
+  "targets": [
+    "dep_increase_7d",
+    "fraud_flag_14d",
+    "abuse_flag_14d"
+  ],
+  "treatment_col": "arm",
+  "one_hot_treatments": [
+    "arm__control",
+    "arm__education_nudge",
+    "arm__personalized_reco",
+    "arm__reco_small_bonus"
+  ],
+  "primary_kpi": "net_revenue",
+  "guardrails": [
+    "loss_rate_gmv",
+    "loss_fraud",
+    "loss_bonus_abuse"
+  ]
+}
