@@ -1,0 +1,23 @@
+# Simulation settings
+seed: 42
+n_users: 10000
+n_weeks: 12
+start_date: "2024-01-01"
+arms:
+  - control
+  - education_nudge
+  - personalized_reco
+  - reco_small_bonus
+bonus_cost:
+  education_nudge: 0.0
+  personalized_reco: 0.0
+  reco_small_bonus: 0.50
+risk_tiers:
+  - low
+  - medium
+  - high
+countries: ["SG", "ID", "MY", "PH", "VN"]
+channels: ["ads", "organic", "referral", "social"]
+devices: ["ios", "android", "web"]
+device_overlap_prob: 0.03
+fraud_base_rate: 0.03

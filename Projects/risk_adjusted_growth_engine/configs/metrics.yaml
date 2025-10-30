@@ -1,0 +1,18 @@
+# KPIs & Guardrails
+kpis:
+  primary: nRPAU
+  components:
+    revenue_gross: float
+    loss_fraud: float
+    loss_bonus_abuse: float
+    bonus_cost: float
+
+guardrails:
+  max_loss_rate_gmv: 0.0025 # 0.25%
+  max_chargeback_rate: 0.0075 # card network typical threshold (illustrative)
+  max_bonus_abuse_incidence: baseline
+
+policy_constraints:
+  max_bonus_cost_per_user: 2.0 # USD
+  max_predicted_fraud_prob: 0.08 # 8%
+  complaint_rate_ceiling: baseline
