@@ -109,3 +109,12 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+    #   "args": [
+    #     "--raw",
+    #     "data/raw",
+    #     "--out",
+    #     "data/processed",
+    #     "--min_weeks",
+    #     "2"
+    #   ]

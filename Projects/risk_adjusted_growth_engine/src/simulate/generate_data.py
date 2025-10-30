@@ -179,3 +179,14 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+    #   "args": [
+    #     "--output",
+    #     "data/raw",
+    #     "--users",
+    #     "10000",
+    #     "--weeks",
+    #     "12",
+    #     "--seed",
+    #     "42"
+    #   ]
