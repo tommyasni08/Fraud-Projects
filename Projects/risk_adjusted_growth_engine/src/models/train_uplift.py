@@ -81,3 +81,12 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+    # "args": [
+    #     "--features",
+    #     "data/processed/features_user_week.csv",
+    #     "--out",
+    #     "artifacts",
+    #     "--min_week",
+    #     "0"
+    #   ]
