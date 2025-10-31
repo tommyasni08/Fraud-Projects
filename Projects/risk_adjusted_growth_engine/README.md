@@ -73,27 +73,30 @@ The challenge is to **maximize revenue uplift** while **keeping fraud** and **bo
 
 ```
 # 1. Generate data
-python rage/src/simulate/generate_data.py --output rage/data/raw --users 10000 --weeks 12 --seed 42
+python src/simulate/generate_data.py --output data/raw --users 10000 --weeks 12 --seed 42
 
 # 2. Build features
-python rage/src/features/build_features.py --raw rage/data/raw --out rage/data/processed --min_weeks 2
+python src/features/build_features.py --raw data/raw --out data/processed --min_weeks 2
 
 # 3. Train uplift & risk models
-python rage/src/models/train_uplift.py --features rage/data/processed/features_user_week.csv --out rage/artifacts
-python rage/src/models/train_risk.py   --features rage/data/processed/features_user_week.csv --out rage/artifacts
+python src/models/train_uplift.py --features data/processed/features_user_week.csv --out artifacts
+python src/models/train_risk.py   --features data/processed/features_user_week.csv --out artifacts
 
 # 4. Optimize campaign policy
-python rage/src/policy/optimize_policy.py \
-  --features rage/data/processed/features_user_week.csv \
-  --uplift   rage/artifacts/predictions/uplift_predictions.csv \
-  --risk     rage/artifacts/predictions/risk_scores.csv \
-  --out      rage/artifacts
+python src/policy/optimize_policy.py \
+  --features data/processed/features_user_week.csv \
+  --uplift   artifacts/predictions/uplift_predictions.csv \
+  --risk     artifacts/predictions/risk_scores.csv \
+  --out      artifacts
+
+# 5. Control Tower Dashboard
+streamlit run dashboards/streamlit_app/app.py
 ```
 
 ## 📁 Folder Structure
 
 ```
-rage/
+risk_adjusted_growth_engine
 ├── src/
 │   ├── simulate/        # Synthetic data generator
 │   ├── features/        # Feature builder & lag computation
