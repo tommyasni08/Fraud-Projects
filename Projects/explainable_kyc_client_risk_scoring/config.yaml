@@ -1,0 +1,30 @@
+version: "1.0.0"
+
+weights:
+  pep_flag: 40
+  pep_match: 60
+  sanction_match: 80
+  residency_country_high: 15
+  occupation_cash_intensive: 10
+  intl_rate_90d_high: 10 # intl_rate_90d > 0.5
+  hrc_hits_90d_ge_2: 15
+  swift_out_90d_ge_2: 12
+  cash_structuring_hits_30d_ge_2: 12
+  large_value_rate_180d_high: 10 # large_value_rate_180d >= 0.2
+  geo_diversity_180d_high: 8 # geo_diversity_180d >= 8
+
+thresholds:
+  intl_rate_90d_high: 0.5
+  large_value_rate_180d_high: 0.2
+  geo_diversity_180d_high: 8
+
+tiers:
+  high: 55
+  medium: 30
+
+fuzzy_match:
+  enabled: true
+  similarity_threshold: 0.88
+
+audit:
+  save_manifest: true
