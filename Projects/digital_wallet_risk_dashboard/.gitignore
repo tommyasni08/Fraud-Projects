@@ -6,7 +6,7 @@ __pycache__/
 *.ipynb_checkpoints
 
 # Data outputs
-data/*.csv
+data/**/*.csv
 
 # Environments
 venv/
