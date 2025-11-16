@@ -1,0 +1,22 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pkl
+*.log
+*.ipynb_checkpoints
+
+# Data outputs
+data/*.csv
+
+# Environments
+venv/
+.env/
+
+# IDEs / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Streamlit cache
+.streamlit/
